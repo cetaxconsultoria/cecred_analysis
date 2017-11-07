@@ -162,7 +162,7 @@ class SVDRecommender(object):
         out = out[:N]
         return out
 
-    def recommend(self, users_list, N=10, values=False):
+    def recommend(self, content_list, content='user', N=10, values=False):
 
         # utilMat element not zero means that element has already been
         # discovered by the user and can not be recommended
@@ -170,24 +170,45 @@ class SVDRecommender(object):
             self.predMask, self.UsV).filled(fill_value=-999)
         out = []
 
-        if values is True:
-            for user in users_list:
-                try:
-                    j = self.user_index[user]
-                except KeyError:
-                    raise Exception("Invalid user:", user)
-                max_indices = predMat[j, :].argsort()[-N:][::-1]
-                out.append([(self.items[index], predMat[j, index])
-                            for index in max_indices])
+        if content == 'user':
+            if values is True:
+                for user in content_list:
+                    try:
+                        j = self.user_index[user]
+                    except KeyError:
+                        raise Exception("Invalid user:", user)
+                    max_indices = predMat[j, :].argsort()[-N:][::-1]
+                    out.append([(self.items[index], predMat[j, index])
+                                for index in max_indices])
 
-        else:
-            for user in users_list:
-                try:
-                    j = self.user_index[user]
-                except KeyError:
-                    raise Exception("Invalid user:", user)
-                max_indices = predMat[j, :].argsort()[-N:][::-1]
-                out.append([self.items[index] for index in max_indices])
+            else:
+                for user in content_list:
+                    try:
+                        j = self.user_index[user]
+                    except KeyError:
+                        raise Exception("Invalid user:", user)
+                    max_indices = predMat[j, :].argsort()[-N:][::-1]
+                    out.append([self.items[index] for index in max_indices])
+
+        elif content == 'item':
+            if values is True:
+                for item in content_list:
+                    try:
+                        j = self.item_index[item]
+                    except KeyError:
+                        raise Exception("Invalid item:", item)
+                    max_indices = predMat[:, j].argsort()[-N:][::-1]
+                    out.append([(self.users[index], predMat[index, j])
+                                for index in max_indices])
+
+            else:
+                for item in content_list:
+                    try:
+                        j = self.item_index[item]
+                    except KeyError:
+                        raise Exception("Invalid item:", item)
+                    max_indices = predMat[:, j].argsort()[-N:][::-1]
+                    out.append([self.users[index] for index in max_indices])
 
         return out
 
